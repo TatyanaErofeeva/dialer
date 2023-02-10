@@ -1,4 +1,4 @@
-import React, { ChangeEventHandler, FormEvent} from 'react'
+import { ChangeEventHandler, FormEvent} from 'react'
 import { LineData } from '../types/table-data';
 import { FaCheck } from "react-icons/fa";
 import  { Tooltip as ReactTooltip } from "react-tooltip";
@@ -11,26 +11,22 @@ type EditProps = {
   }
 
 export function EditCustomer({ editForm, handleCustomerUpdate, handleChange } : EditProps) {
-    let {region, provider, phoneNumber, line, prefix} = editForm
+    let {id, region, provider, phoneNumber, line, prefix} = editForm
 
-// PATCH request; calls handleCustomerUpdate to push changes to the page
-    // function handleEditForm(evt: FormEvent<HTMLFormElement>) {
-    //     evt.preventDefault();
-    //     fetch(`http://localhost:9292/customers/${id}`, {
-    //         method: "PATCH",
-    //         headers: {
-    //             "Content-Type" : "application/json"
-    //         },
-    //         body: JSON.stringify(editForm),
-    //     })
-    //         .then(resp => resp.json())
-    //         .then(updatedLine => {
-    //             handleCustomerUpdate(updatedLine)})
-    // }
-
+// PUT request; calls handleCustomerUpdate to push changes to the page
     function handleEditForm(evt: FormEvent<HTMLFormElement>) {
         evt.preventDefault();
-        handleCustomerUpdate(editForm)
+        fetch(`http://localhost:5000/items/${id}`, {
+            method: "PUT",
+            headers: {
+                "Content-Type" : "application/json"
+            },
+            body: JSON.stringify(editForm),
+        })
+            .then((response) => response.json())
+            .then((data) => {
+            return handleCustomerUpdate(data)
+            })
     }
 
     return (

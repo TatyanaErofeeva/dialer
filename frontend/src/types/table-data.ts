@@ -6,7 +6,6 @@ export type LineData = {
     phoneNumber: string;
     line: string;
     prefix: string;
-    status:string;
   }
   
   export type LinesData = LineData[];

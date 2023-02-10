@@ -11,33 +11,23 @@ type AddProps = {
   }
 
 export function AddNewLine({ addForm, handleAdd, handleNewLine } : AddProps) {
-    let {region, provider, phoneNumber, line, prefix} = addForm
+    let { region, provider, phoneNumber, line, prefix} = addForm
 
-// PATCH request; calls handleCustomerUpdate to push changes to the page
-    // function handleEditForm(evt: FormEvent<HTMLFormElement>) {
-    //     evt.preventDefault();
-    //     fetch(`http://localhost:9292/customers/${id}`, {
-    //         method: "PATCH",
-    //         headers: {
-    //             "Content-Type" : "application/json"
-    //         },
-    //         body: JSON.stringify(editForm),
-    //     })
-    //         .then(resp => resp.json())
-    //         .then(updatedLine => {
-    //             handleCustomerUpdate(updatedLine)})
-    // }
-
-    // function handleAddForm(evt: FormEvent<HTMLFormElement>) {
-    //     evt.preventDefault();
-    //     handleAddingCustomerUpdate(addForm)
-    // }
-
-    function handleAddForm(evt: FormEvent<HTMLFormElement>) {
-        evt.preventDefault();
-        handleNewLine(addForm)
-    }
-
+// POST request; calls handleNewLine to add new line to the page
+function handleAddForm(evt: FormEvent<HTMLFormElement>) {
+    evt.preventDefault();
+    fetch(`http://localhost:5000/items`, {
+        method: "POST",
+        headers: {
+            "Content-Type" : "application/json"
+        },
+        body: JSON.stringify(addForm),
+    })
+        .then((response) => response.json())
+        .then((data) => {
+        return handleNewLine(data)
+        })
+}
 
     return (
         <div>

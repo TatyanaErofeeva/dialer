@@ -1,4 +1,3 @@
-import React, { ChangeEvent } from "react";
 import { LineData} from "../types/table-data";
 import { useState } from "react";
 import { FaRegEdit, FaTrashAlt } from "react-icons/fa";
@@ -28,7 +27,6 @@ export function TableLine ({lineData, captureEdit, changeEditState, handleDelete
       <td>{lineData.phoneNumber}</td>
       <td>{lineData.line}</td>
       <td>{lineData.prefix}</td>
-      <td>{lineData.status}</td>
       {isHovered &&
       <section style={{position: "absolute", display: "flex"}}>
         <button
@@ -46,7 +44,7 @@ export function TableLine ({lineData, captureEdit, changeEditState, handleDelete
           type="button"
           className="btn btn-outline-danger"
           style={{marginTop: "7px", height: "30px"}} 
-          onClick={(evt) => handleDelete(lineData.id)}
+          onClick={() => handleDelete(lineData.id)}
         >
           <FaTrashAlt style={{ marginBottom: "10px"}} />
         </button >

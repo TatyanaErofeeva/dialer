@@ -5,7 +5,7 @@ import { LinesData, LineData} from "./types/table-data";
 import './App.css';
 import { FaPlay, FaPause, FaStop, FaPlus } from "react-icons/fa";
 import { useEffect } from "react";
-import { postData, DATABASE_STATUS_URL, getCampaignStatus, getTableLines} from "./mock/server-data";
+import { postData, getCampaignStatus, getData, SERVER_URL} from "./mock/server-data";
 import { ApiStatus } from "./const";
 import { anObject } from "./mock/server-data";
 import {EditCustomer} from "./components/edit-customer";
@@ -28,12 +28,12 @@ function App() {
   const [isEditing, setIsEditing] = useState(false);
   // state for edit form inputs
   const [editForm, setEditForm] = useState({
-    id: 0, region: '', provider: '', phoneNumber: '', line: '', prefix: '', status: ''
+    id: 0, region: '', provider: '', phoneNumber: '', line: '', prefix: ''
   })
 
   const [isAdding, setIsAdding] = useState(false);
   const [addForm, setAddForm] = useState({
-    id: 0, region: '', provider: '', phoneNumber: '', line: '', prefix: '', status: ''
+    id: 0, region: '', provider: '', phoneNumber: '', line: '', prefix: ''
   })
 
   useEffect(() => {
@@ -45,8 +45,8 @@ function App() {
     }, []); 
 
     useEffect(() => {
-      const timer = setTimeout(async () => {
-        let data = await getTableLines()
+      const timer = setInterval(async () => {
+        let data = await getData();
           setTableLines(data)
       }, 5000);
       return () => clearTimeout(timer);
@@ -119,29 +119,39 @@ function App() {
       setIsAdding(false);
       setTableLines([
         ...tableLines,
-        { id: tableLines.length + 1, region: addForm.region, provider: addForm.provider, phoneNumber: addForm.phoneNumber, line: addForm.line, prefix: addForm.prefix, status: '' }
+        { id: tableLines.length + 1, region: addForm.region, provider: addForm.provider, phoneNumber: addForm.phoneNumber, line: addForm.line, prefix: addForm.prefix }
       ]);
       setAddForm({
-        id: 0, region: '', provider: '', phoneNumber: '', line: '', prefix: '', status: ''
+        id: 0, region: '', provider: '', phoneNumber: '', line: '', prefix: ''
       })
     };
     
-  const handleDelete = (id: number) => {
-    setTableLines(tableLines.filter((item) => item.id !== id));
+
+  // DELETE request; calls handleDelete to delete an item from the page
+const handleDelete = (id: number ) => {
+    fetch(`http://localhost:5000/items/${id}`, {
+        method: "DELETE",
+    })
+    .then((response) => {
+      if (response.status === 204 && tableLines) {
+        setTableLines(tableLines.filter((item) => item.id !== id));
+      }
+        })
   };
 
+
   const handleStartClick = () => {
-    postData(DATABASE_STATUS_URL, { command: 'start' });
+    postData(SERVER_URL, { campaignStatus: 'start' });
     setStartDisable(true);
     setStopDisable(false);
   }
 
   const handlePauseClick = () => {
-     postData(DATABASE_STATUS_URL, { command: 'pause' });
+     postData(SERVER_URL, { campaignStatus: 'pause' });
   }    
 
   const handleStopClick = () => {
-    postData(DATABASE_STATUS_URL, { command: 'stop' });
+    postData(SERVER_URL, { campaignStatus: 'stop' });
     anObject.command = 'stop';
     setStopDisable(true);
     setStartDisable(false);
