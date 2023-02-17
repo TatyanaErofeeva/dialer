@@ -27,8 +27,9 @@ export function TableLine ({lineData, captureEdit, changeEditState, handleDelete
       <td>{lineData.phoneNumber}</td>
       <td>{lineData.line}</td>
       <td>{lineData.prefix}</td>
+      <td>{lineData.dialerStatus}</td>
       {isHovered &&
-      <section style={{position: "absolute", display: "flex"}}>
+      <div style={{position: "absolute", display: "flex"}}>
         <button
           type="button"
           className="btn btn-outline-warning"
@@ -48,7 +49,7 @@ export function TableLine ({lineData, captureEdit, changeEditState, handleDelete
         >
           <FaTrashAlt style={{ marginBottom: "10px"}} />
         </button >
-        </section> }
+        </div> }
       
     </tr>
   </>

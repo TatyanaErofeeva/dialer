@@ -1,1 +1,7 @@
-{}
+{"result":
+    {"response":"success","status":
+        {"status":"stopped","hostname":"dclvccsapp","pid":94411,"type":"call",
+        "lastStatusUpdate":"2023-02-12 18:57:30","lastNumber":"79201911686"
+        }
+    }
+}

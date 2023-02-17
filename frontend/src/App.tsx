@@ -5,17 +5,17 @@ import { LinesData, LineData} from "./types/table-data";
 import './App.css';
 import { FaPlay, FaPause, FaStop, FaPlus } from "react-icons/fa";
 import { useEffect } from "react";
-import { postData, getCampaignStatus, getData, SERVER_URL} from "./mock/server-data";
-import { ApiStatus } from "./const";
-import { anObject } from "./mock/server-data";
+import { postData, getCampaignStatus, getData, DATABASE_CAMPAIGNSTATUS_URL} from "./mock/server-data";
+import { ApiStatus, ALERT_SHOW_TIME } from "./const";
 import {EditCustomer} from "./components/edit-customer";
 import { AddNewLine } from "./components/add-new-line";
 import  { Tooltip as ReactTooltip } from "react-tooltip";
 import "react-tooltip/dist/react-tooltip.css";
+import { toast } from "react-toastify";
+import {ToastContainer} from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
-const initialCampaignState = {
-  command:'unknown',
-}
+const initialCampaignState = '';
 
 function App() {
   const [campaignStatus, setCampaignStatus] = useState(initialCampaignState);
@@ -28,33 +28,35 @@ function App() {
   const [isEditing, setIsEditing] = useState(false);
   // state for edit form inputs
   const [editForm, setEditForm] = useState({
-    id: 0, region: '', provider: '', phoneNumber: '', line: '', prefix: ''
+    id: 0, region: '', provider: '', phoneNumber: '', line: '', prefix: '', dialerStatus:''
   })
 
   const [isAdding, setIsAdding] = useState(false);
   const [addForm, setAddForm] = useState({
-    id: 0, region: '', provider: '', phoneNumber: '', line: '', prefix: ''
+    id: 0, region: '', provider: '', phoneNumber: '', line: '', prefix: '', dialerStatus:''
   })
 
-  useEffect(() => {
-      const timer = setTimeout(async () => {
-        let campaignStatus = await getCampaignStatus() ;
-        setCampaignStatus(campaignStatus)
-      }, 5000);
-      return () => clearTimeout(timer);
-    }, []); 
+  const getInfo = async () => {
+    let campaignStatus = await getCampaignStatus();
+    setCampaignStatus(campaignStatus);
+    console.log({campaignStatus});
+    let data = await getData();
+    console.log({data});
+    setTableLines(data);
+  }
 
-    useEffect(() => {
-      const timer = setInterval(async () => {
-        let data = await getData();
-          setTableLines(data)
-      }, 5000);
-      return () => clearTimeout(timer);
-    }, []);
+  useEffect(() => {
+    getInfo();
+    const timer = setInterval(getInfo, ALERT_SHOW_TIME);
+    return () => {
+      clearTimeout(timer)
+    };
+  }, []);
 
     if (!tableLines) {
       return <Spinner />
     }
+
 
   // update data on page after edit
   function onUpdateLine(updatedLine : LineData) {
@@ -119,10 +121,10 @@ function App() {
       setIsAdding(false);
       setTableLines([
         ...tableLines,
-        { id: tableLines.length + 1, region: addForm.region, provider: addForm.provider, phoneNumber: addForm.phoneNumber, line: addForm.line, prefix: addForm.prefix }
+        { id: tableLines.length + 1, region: addForm.region, provider: addForm.provider, phoneNumber: addForm.phoneNumber, line: addForm.line, prefix: addForm.prefix, dialerStatus: addForm.dialerStatus  }
       ]);
       setAddForm({
-        id: 0, region: '', provider: '', phoneNumber: '', line: '', prefix: ''
+        id: 0, region: '', provider: '', phoneNumber: '', line: '', prefix: '', dialerStatus:''
       })
     };
     
@@ -141,32 +143,40 @@ const handleDelete = (id: number ) => {
 
 
   const handleStartClick = () => {
-    postData(SERVER_URL, { campaignStatus: 'start' });
+    postData(DATABASE_CAMPAIGNSTATUS_URL, { campaignStatus: 'start' });
     setStartDisable(true);
     setStopDisable(false);
   }
 
   const handlePauseClick = () => {
-     postData(SERVER_URL, { campaignStatus: 'pause' });
+     postData(DATABASE_CAMPAIGNSTATUS_URL, { campaignStatus: 'pause' });
   }    
 
   const handleStopClick = () => {
-    postData(SERVER_URL, { campaignStatus: 'stop' });
-    anObject.command = 'stop';
+    postData(DATABASE_CAMPAIGNSTATUS_URL, { campaignStatus: 'stop' });
     setStopDisable(true);
     setStartDisable(false);
-    campaignStatus.command = ApiStatus.Start
   } 
+  const isPlayDisabled = campaignStatus === ApiStatus.Running || campaignStatus === ApiStatus.Unknown;
+  const isPauseStopDisabled = campaignStatus === ApiStatus.Stop || campaignStatus === ApiStatus.Unknown;
 
   return(
+    <>
+    <ToastContainer/>
     <section className = "App">
+      {campaignStatus === ApiStatus.Unknown?
+          (toast.error('Get запрос на DATABASE_GETCAMPAIGNSTATUS_URL. campainStatus === "unknown". Обратитесь в службу поддержки', 
+          {
+            position: toast.POSITION.TOP_RIGHT
+          })) : ''
+      }
       <span className="buttonSection">
           <button
             type="button"
             id="start-button"
             className="btn btn-outline-success"
             onClick={handleStartClick}
-            disabled = {campaignStatus.command === ApiStatus.Running ? true : false || startDisable }
+            disabled = {isPlayDisabled }
             style={{marginRight:"10px"}} 
           >
             <FaPlay/>
@@ -177,6 +187,7 @@ const handleDelete = (id: number ) => {
           id="pause-button"
           className="btn btn-outline-warning"
           onClick={handlePauseClick}
+          disabled = {isPauseStopDisabled}
           style={{marginRight:"10px"}} 
         >
           <FaPause/>
@@ -186,11 +197,12 @@ const handleDelete = (id: number ) => {
           id="stop-button"
           className="btn btn-outline-danger"
           onClick={handleStopClick}
-          disabled = {stopDisable}
+          disabled = {isPauseStopDisabled}
         >
           <FaStop/>
-        </button>  
+        </button>   
       </span>
+      
       <ReactTooltip content="Click to start" anchorId="start-button">
       </ReactTooltip>
       <ReactTooltip content="Click to pause" anchorId="pause-button">
@@ -230,7 +242,7 @@ const handleDelete = (id: number ) => {
           <th scope="col">Номер</th>
           <th scope="col">Линия</th>
           <th scope="col">Префикс</th>
-          <th scope="col">Статус</th>
+          <th scope="col">Статус звонка</th>
         </tr>
       </thead>
       <tbody>
@@ -247,6 +259,7 @@ const handleDelete = (id: number ) => {
      </table>
      </div>
      </section>
+     </>
   )
 }
 

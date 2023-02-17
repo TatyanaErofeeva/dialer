@@ -1,38 +1,38 @@
+import { toast } from "react-toastify";
 import { showAlert} from "../util";
 
 export const SERVER_URL = 'http://localhost:5000';
 export const DATABASE_ITEMS_URL = `${SERVER_URL}/items`;
+export const DATABASE_CAMPAIGNSTATUS_URL = `${SERVER_URL}/items/campaignstatus`;
+export const DATABASE_GETCAMPAIGNSTATUS_URL = `${SERVER_URL}/items/get/campaignstatus`;
 
-export async function postData(url = '', status = {}) {
-    const response = await fetch(url, {
-      method: 'POST', 
-      body: JSON.stringify(status) 
+export async function postData(url = '', campaignStatus = {}) {
+    await fetch(url, {
+      method: 'POST',
+      headers: {
+        "Content-Type" : "application/json"
+    }, 
+      body: JSON.stringify(campaignStatus) 
     });
-    return response.json();
   }
 
   export const getData = () => {
     return fetch(DATABASE_ITEMS_URL)
       .then((response) => response.json())
-      .then((data) => {
-       return data
-      })
       .catch(() => {
         showAlert('Не удалось загрузить данные. Попробуйте еще раз');
       });
     };
 
-  export function getCampaignStatus () {
-    return Promise.resolve(
-      {
-        command: 'running'
-      }
-    )
-  }
-  
-  export let anObject  = {
-    command:'start'
-  };
 
-
+  export const getCampaignStatus = () => {
+     return fetch(DATABASE_GETCAMPAIGNSTATUS_URL)
+      .then((response) => response.json())
+      .catch(() => {
+        (toast.error('Не удалось загрузить статус компании. Обратитесь в службу поддержки', 
+          {
+            position: toast.POSITION.TOP_RIGHT
+          }))
+      });
+    };
 
