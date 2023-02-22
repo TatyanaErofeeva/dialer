@@ -40,19 +40,3 @@ export function postData(url = '', campaignStatus = {}) {
 
 }
 
-  
-
-  
-
-  // export const getCampaignStatus = () => {
-  //    return fetch(DATABASE_GETCAMPAIGNSTATUS_URL)
-  //     .then((response) => response.json())
-  //     .catch((err) => {
-  //       console.log({err});
-  //       (toast.error(`Не удалось загрузить статус кампании. ${err.stack}`, 
-  //         {
-  //           position: toast.POSITION.TOP_RIGHT
-  //         }))
-  //     });
-  //   };
-
