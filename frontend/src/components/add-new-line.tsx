@@ -1,14 +1,15 @@
-import { ChangeEventHandler, FormEvent, useEffect} from 'react'
+import { ChangeEventHandler, FormEvent} from 'react'
 import { LineData } from '../types/table-data';
 import { FaCheck } from "react-icons/fa";
 import  { Tooltip as ReactTooltip } from "react-tooltip";
 import "react-tooltip/dist/react-tooltip.css";
+import { DATABASE_ITEMS_URL } from '../const';
 
 type AddProps = {
     addForm:LineData ;
     handleAdd: ChangeEventHandler<HTMLInputElement>;
     handleNewLine: (newLine: LineData) => void;
-  }
+}
 
 export function AddNewLine({ addForm, handleAdd, handleNewLine } : AddProps) {
     let { region, provider, phoneNumber, line, prefix} = addForm
@@ -16,7 +17,7 @@ export function AddNewLine({ addForm, handleAdd, handleNewLine } : AddProps) {
 // POST request; calls handleNewLine to add new line to the page
 function handleAddForm(evt: FormEvent<HTMLFormElement>) {
     evt.preventDefault();
-    fetch(`http://localhost:5000/items`, {
+    fetch(DATABASE_ITEMS_URL, {
         method: "POST",
         headers: {
             "Content-Type" : "application/json"
@@ -32,8 +33,8 @@ function handleAddForm(evt: FormEvent<HTMLFormElement>) {
     return (
         <div>
             <form
-              onSubmit={handleAddForm}
-             style={{marginTop:"50px", marginLeft: '200px'}}
+                onSubmit={handleAddForm}
+                style={{marginTop:"50px", marginLeft: '200px'}}
              >
                 <input type="text" name="region" value={region} onChange={handleAdd} id="region"/>
                 <input type="text" name="provider" value={provider} onChange={handleAdd} id="provider"/>

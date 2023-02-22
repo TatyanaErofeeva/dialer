@@ -5,8 +5,8 @@ import { LinesData, LineData} from "./types/table-data";
 import './App.css';
 import { FaPlay, FaPause, FaStop, FaPlus } from "react-icons/fa";
 import { useEffect } from "react";
-import { postData, getCampaignStatus, getData, DATABASE_CAMPAIGNSTATUS_URL} from "./mock/server-data";
-import { ApiStatus, ALERT_SHOW_TIME } from "./const";
+import { postData, getCampaignStatus, getData} from "./server/server-data";
+import { ApiStatus, ALERT_SHOW_TIME, DATABASE_CAMPAIGNSTATUS_URL} from "./const";
 import {EditCustomer} from "./components/edit-customer";
 import { AddNewLine } from "./components/add-new-line";
 import  { Tooltip as ReactTooltip } from "react-tooltip";
@@ -20,8 +20,10 @@ const initialCampaignState = '';
 function App() {
   const [campaignStatus, setCampaignStatus] = useState(initialCampaignState);
   const [tableLines, setTableLines] = useState<LinesData | null>(null);
-  
+
+  // state for conditional render of stop button
   const [stopDisable, setStopDisable] = useState(false);
+  // state for conditional render of start button
   const [startDisable, setStartDisable] = useState(false);
 
   // state for conditional render of edit form
@@ -31,7 +33,9 @@ function App() {
     id: 0, region: '', provider: '', phoneNumber: '', line: '', prefix: '', dialerStatus:''
   })
 
+  // state for conditional render of add form
   const [isAdding, setIsAdding] = useState(false);
+   // state for add form inputs
   const [addForm, setAddForm] = useState({
     id: 0, region: '', provider: '', phoneNumber: '', line: '', prefix: '', dialerStatus:''
   })
@@ -41,7 +45,6 @@ function App() {
     setCampaignStatus(campaignStatus);
     console.log({campaignStatus});
     let data = await getData();
-    console.log({data});
     setTableLines(data);
   }
 
@@ -56,7 +59,6 @@ function App() {
     if (!tableLines) {
       return <Spinner />
     }
-
 
   // update data on page after edit
   function onUpdateLine(updatedLine : LineData) {
@@ -84,7 +86,7 @@ function App() {
     })
   }
 
-  // needed logic for conditional rendering of the form - shows the customer you want when you want them, and hides it when you don't
+  // needed logic for conditional rendering of edit form - shows and hides it when you want
   function changeEditState(lineData : LineData ) {
     if (lineData.id === editForm.id) {
       setIsEditing(isEditing => !isEditing) // hides the form
@@ -93,18 +95,18 @@ function App() {
     }
   }
 
-  // capture the customer you wish to edit, set to state
+  // capture the tableLine you wish to edit, set to state
   function captureEdit(clickedCustomer: LineData) {
     if (!tableLines) return;
     let filtered = tableLines.filter(lineData => lineData.id === clickedCustomer.id)
     setEditForm(filtered[0])
   }
 
+  // needed logic for conditional rendering of add form - shows and hides it when you want
   function showAddComponent() {
     if (isAdding == true){
       setIsAdding(isAdding => !isAdding) // hides the form
-
-  } else {
+    } else {
       setIsAdding(isAdding => !isAdding) // shows the form
     }
   }
@@ -116,31 +118,29 @@ function App() {
     })
   }
 
-    const addRowInTable = () => {
-      if (!tableLines) return;
-      setIsAdding(false);
-      setTableLines([
-        ...tableLines,
-        { id: tableLines.length + 1, region: addForm.region, provider: addForm.provider, phoneNumber: addForm.phoneNumber, line: addForm.line, prefix: addForm.prefix, dialerStatus: addForm.dialerStatus  }
-      ]);
-      setAddForm({
-        id: 0, region: '', provider: '', phoneNumber: '', line: '', prefix: '', dialerStatus:''
-      })
-    };
-    
+  const addRowInTable = () => {
+    if (!tableLines) return;
+    setIsAdding(false);
+    setTableLines([
+      ...tableLines,
+      { id: tableLines.length + 1, region: addForm.region, provider: addForm.provider, phoneNumber: addForm.phoneNumber, line: addForm.line, prefix: addForm.prefix, dialerStatus: addForm.dialerStatus  }
+    ]);
+    setAddForm({
+      id: 0, region: '', provider: '', phoneNumber: '', line: '', prefix: '', dialerStatus:''
+    })
+  };
 
-  // DELETE request; calls handleDelete to delete an item from the page
-const handleDelete = (id: number ) => {
+  // DELETE request; calls handleDelete to delete a tableLine
+  const handleDelete = (id: number ) => {
     fetch(`http://localhost:5000/items/${id}`, {
-        method: "DELETE",
+      method: "DELETE",
     })
     .then((response) => {
       if (response.status === 204 && tableLines) {
-        setTableLines(tableLines.filter((item) => item.id !== id));
+          setTableLines(tableLines.filter((item) => item.id !== id));
       }
-        })
+    })
   };
-
 
   const handleStartClick = () => {
     postData(DATABASE_CAMPAIGNSTATUS_URL, { campaignStatus: 'start' });
@@ -149,7 +149,7 @@ const handleDelete = (id: number ) => {
   }
 
   const handlePauseClick = () => {
-     postData(DATABASE_CAMPAIGNSTATUS_URL, { campaignStatus: 'pause' });
+    postData(DATABASE_CAMPAIGNSTATUS_URL, { campaignStatus: 'pause' });
   }    
 
   const handleStopClick = () => {
@@ -157,8 +157,9 @@ const handleDelete = (id: number ) => {
     setStopDisable(true);
     setStartDisable(false);
   } 
-  const isPlayDisabled = campaignStatus === ApiStatus.Running || campaignStatus === ApiStatus.Unknown;
-  const isPauseStopDisabled = campaignStatus === ApiStatus.Stop || campaignStatus === ApiStatus.Unknown;
+
+  const isPlayDisabled = campaignStatus === ApiStatus.Running || campaignStatus === ApiStatus.Unknown || startDisable;
+  const isPauseStopDisabled = campaignStatus === ApiStatus.Stop || campaignStatus === ApiStatus.Unknown || stopDisable;
 
   return(
     <>
@@ -171,17 +172,16 @@ const handleDelete = (id: number ) => {
           })) : ''
       }
       <span className="buttonSection">
-          <button
-            type="button"
-            id="start-button"
-            className="btn btn-outline-success"
-            onClick={handleStartClick}
-            disabled = {isPlayDisabled }
-            style={{marginRight:"10px"}} 
-          >
-            <FaPlay/>
-          </button>
-          
+        <button
+          type="button"
+          id="start-button"
+          className="btn btn-outline-success"
+          onClick={handleStartClick}
+          disabled = {isPlayDisabled }
+          style={{marginRight:"10px"}} 
+        >
+          <FaPlay/>
+        </button>
         <button
           type="button"
           id="pause-button"
@@ -202,7 +202,6 @@ const handleDelete = (id: number ) => {
           <FaStop/>
         </button>   
       </span>
-      
       <ReactTooltip content="Click to start" anchorId="start-button">
       </ReactTooltip>
       <ReactTooltip content="Click to pause" anchorId="pause-button">
@@ -211,56 +210,58 @@ const handleDelete = (id: number ) => {
       </ReactTooltip>
       <span>
         <button
-            type="button"
-            className="btn btn-outline-info"
-            onClick = {showAddComponent}
-            style={{position:"absolute", top: "18px", right: "200px"}} 
-          >
-            <FaPlus/>
-          </button>
+          type="button"
+          className="btn btn-outline-info"
+          onClick = {showAddComponent}
+          style={{position:"absolute", top: "18px", right: "200px"}} 
+        >
+          <FaPlus/>
+        </button>
       </span>
       <div>
-      {isEditing?
+        {isEditing?
           (<EditCustomer
             editForm={editForm}
             handleChange={handleChange}
             handleCustomerUpdate={handleCustomerUpdate}
-          />) : null}
-      {isAdding?
-        (<AddNewLine
-        addForm={addForm}
-        handleAdd={handleAdd}
-        handleNewLine = {addRowInTable}
-
-      />) : null}
-    
-    <table className="table table-bordered">
-      <thead>
-        <tr>
-          <th scope="col">Регион</th>
-          <th scope="col">Провайдер</th>
-          <th scope="col">Номер</th>
-          <th scope="col">Линия</th>
-          <th scope="col">Префикс</th>
-          <th scope="col">Статус звонка</th>
-        </tr>
-      </thead>
-      <tbody>
-      { tableLines.map((lineData) => (
-        <TableLine
-          key = {lineData.id}
-          lineData = {lineData}
-          captureEdit={captureEdit}
-          changeEditState={changeEditState}
-          handleDelete = {handleDelete}
-        />
-      )) }
-      </tbody>
-     </table>
-     </div>
-     </section>
-     </>
-  )
+          />) : null
+        }
+        {isAdding?
+          (<AddNewLine
+            addForm={addForm}
+            handleAdd={handleAdd}
+            handleNewLine = {addRowInTable}
+          />) : null
+        }
+        <table className="table table-bordered">
+          <thead>
+            <tr>
+              <th scope="col">Регион</th>
+              <th scope="col">Провайдер</th>
+              <th scope="col">Номер</th>
+              <th scope="col">Линия</th>
+              <th scope="col">Префикс</th>
+              <th scope="col">Статус звонка</th>
+              <th scope="col">Действия</th>
+              
+            </tr>
+          </thead>
+          <tbody>
+            {tableLines.map((lineData) => (
+              <TableLine
+                key = {lineData.id}
+                lineData = {lineData}
+                captureEdit={captureEdit}
+                changeEditState={changeEditState}
+                handleDelete = {handleDelete}
+              />
+            )) }
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </>
+ )
 }
 
 export default App;

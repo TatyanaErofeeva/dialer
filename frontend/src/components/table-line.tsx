@@ -1,5 +1,4 @@
 import { LineData} from "../types/table-data";
-import { useState } from "react";
 import { FaRegEdit, FaTrashAlt } from "react-icons/fa";
 
 type LineProps = {
@@ -10,30 +9,31 @@ type LineProps = {
   }
 
 export function TableLine ({lineData, captureEdit, changeEditState, handleDelete}: LineProps){
-  const [isHovered, setHovered] = useState(false);
+
+  function confirmedDeletion (){
+    const result = window.confirm("Подтвердите удаление");
+    if (result) {
+      handleDelete(lineData.id);
+    }
+  }
   
   return (
   <>
     <tr 
-      onMouseEnter={() => {
-            setHovered(true);
-          }}
-          onMouseLeave={() => setHovered(false)}
-          key={lineData.id}
-          style={{position: "relative"}}
-          >
+      key={lineData.id}
+      style={{position: "relative"}}
+    >
       <td>{lineData.region}</td>
       <td>{lineData.provider}</td>
       <td>{lineData.phoneNumber}</td>
       <td>{lineData.line}</td>
       <td>{lineData.prefix}</td>
       <td>{lineData.dialerStatus}</td>
-      {isHovered &&
-      <div style={{position: "absolute", display: "flex"}}>
+      <td>
         <button
           type="button"
           className="btn btn-outline-warning"
-          style={{marginRight:"17px", marginTop: "7px", height: "30px"}} 
+          style={{marginLeft: "10px", marginRight:"17px", height: "30px"}} 
           onClick={() => {
             captureEdit(lineData);
             changeEditState(lineData)
@@ -44,13 +44,12 @@ export function TableLine ({lineData, captureEdit, changeEditState, handleDelete
         <button
           type="button"
           className="btn btn-outline-danger"
-          style={{marginTop: "7px", height: "30px"}} 
-          onClick={() => handleDelete(lineData.id)}
+          style={{ height: "30px"}} 
+          onClick={confirmedDeletion}
         >
           <FaTrashAlt style={{ marginBottom: "10px"}} />
         </button >
-        </div> }
-      
+        </td>
     </tr>
   </>
   )

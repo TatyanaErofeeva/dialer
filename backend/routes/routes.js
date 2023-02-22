@@ -23,26 +23,24 @@ router.get('/', function (req, res) {
     const finished = item[3]; 
     const triesSuccess = item[4];
     const triesFailure = item[5];
-    
-  const getStatus = function(finished,triesSuccess,triesFailure) {
-    if(finished && triesSuccess == 1 && triesFailure == 0) {
-      return numberStatus = DialerStatus.SUCCESS
-    }
+    const getStatus = function(finished,triesSuccess,triesFailure) {
+      if(finished && triesSuccess == 1 && triesFailure == 0) {
+        return numberStatus = DialerStatus.SUCCESS
+      }
       if(finished && triesSuccess == 0 && triesFailure == 1) {
         return numberStatus = DialerStatus.FAILURE
       }
-        if (!finished){
-          return numberStatus = DialerStatus.QUEUED
-        }
-  }
-  newObj[phoneNumber] = getStatus(finished,triesSuccess,triesFailure); 
+      if (!finished){
+        return numberStatus = DialerStatus.QUEUED
+      }
+    }
+    newObj[phoneNumber] = getStatus(finished,triesSuccess,triesFailure); 
   })
   
   info.forEach((elem) => {
     if(newObj[elem.phoneNumber]){
       elem.dialerStatus = newObj[elem.phoneNumber];
-    }
-    else{
+    } else{
       elem.dialerStatus = DialerStatus.UKNOWN
     }
   })
@@ -88,6 +86,7 @@ router.post('/', function (req, res) {
     }
     console.log("The file was saved!");
   });
+
  res.status(201).json(newItem);
 });
   
@@ -147,13 +146,12 @@ router.delete('/:id', function (req, res) {
   res.sendStatus(204);
 });
 
-/////////////////////////////// Send and get info from the autodialer
+///Send and get info from the autodialer
 router.get('/get/campaignstatus', function (req, res) {
   const data = fs.readFileSync('campaignStatus.json');
   const infoStatus = JSON.parse(data);
   let campaignStatus = infoStatus.result.status.status;
-console.log(campaignStatus);
-res.status(200).json(campaignStatus);
+  res.status(200).json(campaignStatus);
 });
 
 
@@ -162,12 +160,18 @@ router.post('/campaignstatus', function (req, res) {
     campaignStatus: req.body.campaignStatus,
   };
 
-  fetch(url, {
-    method: 'POST',
-    body: JSON.stringify(newItem) 
+  fs.writeFileSync('statusCampaignClient.json', JSON.stringify(newItem), function (err) {
+    if (err){
+      res.status(500).send({error: "failed to save"});
+    } 
   });
 
-  res.status(201).json(newItem);
+  // fetch(url, {
+  //   method: 'POST',
+  //   body: JSON.stringify(newItem) 
+  // });
+
+  res.status(200).json(newItem);
 });
 
 

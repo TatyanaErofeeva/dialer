@@ -1,4 +1,3 @@
-
 export type LineData = {
     id:number;
     region: string;
