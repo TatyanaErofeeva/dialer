@@ -43,7 +43,6 @@ function App() {
   const getInfo = async () => {
     let campaignStatus = await getCampaignStatus();
     setCampaignStatus(campaignStatus);
-    console.log({campaignStatus});
     let data = await getData();
     setTableLines(data);
   }
